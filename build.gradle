@@ -1,10 +1,17 @@
 buildscript {
+  ext {
+    kotlinVersion = '1.1.1'
+    javaVersion = JavaVersion.VERSION_1_7
+  }
+
   repositories {
-    mavenCentral()
+    jcenter()
   }
 
   dependencies {
-    classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.8.12'
   }
 }
 
@@ -12,20 +19,28 @@ apply from: file("gradle/integration-tests.gradle")
 
 version = '0.8.2-SNAPSHOT'
 
-//noinspection GroovyAssignabilityCheck
-task populateVersion(description: "Populate root project version") << {
-  String version = project.setVersionValue
-  [
-      fileTree(dir: "$rootDir", includes: ["*.gradle"]),
-      fileTree(dir: "$rootDir/samples", includes: ["*/*.gradle"]),
-      fileTree(dir: "$rootDir", includes: ["*/src/**/*.java", "*/src/**/*.groovy"]),
-      fileTree(dir: "${project(':command-line').projectDir}",
-          includes: ["src/launcher/*.sh", "src/launcher/*.bat", "src/cmd-test/run"])
-  ].each { def collection ->
-    collection.each {
-      String code = it.getText("UTF-8")
-      code = code.replace("$rootProject.version", version)
-      it.withWriter("UTF-8") { it << code }
+task populateVersion() {
+  description = 'Populate root project version'
+
+  doLast {
+    String version = project.setVersionValue
+    [
+        fileTree(dir: "$rootDir", includes: ["*.gradle"]),
+        fileTree(dir: "$rootDir/samples", includes: ["*/*.gradle"]),
+        fileTree(dir: "$rootDir", includes: ["*/src/**/*.java", "*/src/**/*.groovy"]),
+        fileTree(dir: "${project(':command-line').projectDir}",
+            includes: ["src/launcher/*.sh", "src/launcher/*.bat", "src/cmd-test/run"])
+    ].each { def collection ->
+      collection.each {
+        String code = it.getText("UTF-8")
+        code = code.replace("$rootProject.version", version)
+        it.withWriter("UTF-8") { it << code }
+      }
     }
   }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.5'
+  distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

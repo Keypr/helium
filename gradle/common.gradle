@@ -1,10 +1,37 @@
-group = 'com.stanfy.helium'
+group = 'com.keypr.helium'
 version = rootProject.version
 
-boolean hasCredentials = hasProperty('nexusUsername') && hasProperty('nexusPassword')
+boolean hasCredentials = hasProperty('binTrayUser') && hasProperty('binTrayKey')
+if (hasCredentials) {
+  apply plugin: 'com.jfrog.bintray'
+  apply plugin: 'maven-publish'
+  bintray {
+    user = project.binTrayUser
+    key = project.binTrayKey
+
+    pkg {
+      repo = 'keypr-public'
+      name = project.name
+      userOrg = 'keypr'
+      licenses = ['Apache-2.0']
+      vcsUrl = 'https://github.com/Keypr/helium.git'
+
+      version {
+        name = project.version
+      }
+    }
+
+    publications = ['mavenPub']
+  }
+}
+
+checkstyle {
+  configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
+  toolVersion = '6.4'
+}
 
 repositories {
-  mavenCentral()
+  jcenter()
 }
 
 configurations {
@@ -18,9 +45,30 @@ dependencies {
   groovyDocFix 'org.fusesource.jansi:jansi:1.11'
 }
 
+tasks.all { task ->
+  if (task.name.startsWith('compile') && (task.name.endsWith('Java') || task.name.endsWith('Groovy'))) {
+    task.configure {
+      sourceCompatibility = project.javaVersion
+      targetCompatibility = project.javaVersion
+    }
+  } else if (task.name.startsWith('generatePomFile')) {
+    tasks.bintrayUpload.dependsOn task
+  }
+}
+
 groovydoc {
   exclude 'com/stanfy/helium/**/internal/**'
   classpath += configurations.groovyDocFix
+}
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) {
+  classifier = 'javadoc'
+  from 'build/docs/groovydoc'
+}
+
+task sourcesJar(type: Jar) {
+  from sourceSets.main.allSource
+  classifier = 'sources'
 }
 
 if (tasks.findByPath('jacocoTestReport')) {
@@ -29,87 +77,59 @@ if (tasks.findByPath('jacocoTestReport')) {
   }
 }
 
-afterEvaluate {
+artifacts {
+  archives groovydocJar
+  archives sourcesJar
+}
 
-  ["Groovy", "Java"].each {
-    [tasks["compile$it"], tasks["compileTest$it"]].each {
-      it.configure {
-        sourceCompatibility = 1.7
-        targetCompatibility = 1.7
-      }
+def pomConfig = {
+  description 'DSL and Java API for REST API specification'
+  url 'https://github.com/keypr/helium'
+
+  scm {
+    url 'https://github.com/keypr/helium'
+    connection 'scm:git:git@github.com:keypr/helium.git'
+    developerConnection 'scm:git:git@github.com:keypr/helium.git'
+  }
+
+  licenses {
+    license {
+      name 'The Apache Software License, Version 2.0'
+      url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+      distribution 'repo'
     }
   }
 
-  task groovydocJar(type: Jar, dependsOn: groovydoc) {
-    classifier = 'javadoc'
-    from 'build/docs/groovydoc'
+  developers {
+    developer {
+      id 'stanfy'
+      name 'Stanfy'
+    }
+    developer {
+      id 'keypr'
+      name 'KEYPR'
+    }
   }
+}
 
-  task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-  }
+publishing {
+  publications {
+    mavenPub(MavenPublication) {
+      groupId project.group
+      artifactId project.name
+      version project.version
 
-  artifacts {
-    archives groovydocJar
-    archives sourcesJar
-  }
+      from components.java
 
-  checkstyle {
-    configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
-    toolVersion = '6.4'
-  }
+      artifact(tasks.sourcesJar) {
+        classifier 'sources'
+      }
+      artifact(tasks.groovydocJar) {
+        classifier 'javadoc'
+      }
 
-  signing {
-    required !version.contains("SNAPSHOT")
-    sign configurations.archives
-  }
-
-  uploadArchives {
-    repositories {
-      mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-          if (hasCredentials) {
-            authentication(userName: nexusUsername, password: nexusPassword)
-          }
-        }
-        snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-          if (hasCredentials) {
-            authentication(userName: nexusUsername, password: nexusPassword)
-          }
-        }
-
-        pom.project {
-          name 'Helium'
-          description 'DSL and Java API for REST API specification'
-          url 'https://github.com/stanfy/helium'
-          inceptionYear '2013'
-
-          scm {
-            url 'https://github.com/stanfy/helium'
-            connection 'scm:git:git@github.com:stanfy/helium.git'
-            developerConnection 'scm:git:git@github.com:stanfy/helium.git'
-          }
-
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
-            }
-          }
-
-          developers {
-            developer {
-              id 'rmazur'
-              name 'Roman Mazur'
-              email 'rmazur@stanfy.com.ua'
-            }
-          }
-        }
-
+      pom.withXml {
+        asNode().children().last() + pomConfig
       }
     }
   }

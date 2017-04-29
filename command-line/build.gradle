@@ -3,7 +3,8 @@ apply plugin: 'signing'
 apply plugin: 'maven'
 apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
-apply plugin: "jacoco"
+apply plugin: 'jacoco'
+apply plugin: 'java-library'
 
 apply from: file("$rootDir/gradle/common.gradle")
 
@@ -42,18 +43,20 @@ task execTest(type: Exec, dependsOn: noDepsJar) {
   commandLine 'src/cmd-test/run'
 }
 
-task verifyTest(dependsOn: execTest) << {
-  def file = new File(buildDir, "test-cmd-out")
-  assert file.exists()
-  assert file.directory
+task verifyTest(dependsOn: execTest) {
+  doLast {
+    def file = new File(buildDir, "test-cmd-out")
+    assert file.exists()
+    assert file.directory
 
-  assert new File(file, "com/test/Entity.java").exists()
+    assert new File(file, "com/test/Entity.java").exists()
+  }
 }
 
 
 task swiftGenTest(type:Exec, dependsOn: noDepsJar) {
   def file = new File(buildDir, "swift-gen-test-out")
-  // TODO : This is teporatry solutions
+  // TODO : This is a temporary solution.
   if (!file.exists()) {
     file.mkdir()
   }
@@ -62,14 +65,16 @@ task swiftGenTest(type:Exec, dependsOn: noDepsJar) {
   commandLine 'src/cmd-test/swift-gen-run.sh'
 }
 
-task verifySwiftGenTest(dependsOn: swiftGenTest) << {
-  def file = new File(buildDir, "swift-gen-test-out")
-  assert file.exists()
-  assert file.directory
+task verifySwiftGenTest(dependsOn: swiftGenTest) {
+  doLast {
+    def file = new File(buildDir, "swift-gen-test-out")
+    assert file.exists()
+    assert file.directory
 
-  assert new File(file, "SwiftAPIClientCore.swift").exists()
-  assert new File(file, "SwiftAPIRequestManager.swift").exists()
-  assert new File(file, "SwiftAPIServiceExample.swift").exists()
+    assert new File(file, "SwiftAPIClientCore.swift").exists()
+    assert new File(file, "SwiftAPIRequestManager.swift").exists()
+    assert new File(file, "SwiftAPIServiceExample.swift").exists()
 
-  // here should be swiftc invokation
+    // TODO: here should be swiftc invocation.
+  }
 }
