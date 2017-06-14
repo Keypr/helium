@@ -2,6 +2,7 @@ package com.stanfy.helium.internal.dsl
 
 import com.squareup.okhttp.MediaType
 import com.stanfy.helium.DefaultTypesLoader
+import com.stanfy.helium.internal.MethodsExecutor
 import com.stanfy.helium.internal.model.tests.CheckableService
 import com.stanfy.helium.model.DataType
 import com.stanfy.helium.model.Dictionary
@@ -683,6 +684,25 @@ class ProjectDslSpec extends Specification {
 
     then:
     dsl.checksCount() == 2
+  }
+
+  def "allows to add skipped behaviour descriptions"() {
+    given:
+    dsl.service {
+      name 'test-service'
+      describe 'something' spec {
+        xdescribe 'ignored' spec {
+          it('nothing') { throw new UnsupportedOperationException('Should not be executed') }
+        }
+      }
+    }
+
+    when:
+    def result = dsl.serviceByName('test-service').check(Mock(MethodsExecutor), Mock(CheckListener))
+
+    then:
+    result.children[0].name == 'ignored'
+    result.children[0].result == BehaviourCheck.Result.PENDING
   }
 
   def "service can be checked"() {
