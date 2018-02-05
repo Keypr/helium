@@ -154,7 +154,7 @@ class SwiftServicesMapHelper {
         res = functionParams.map { field ->
           var castValue = typesRegistry.propertyName(field.name)
           if (field.type.name != "string") {
-            castValue = "String(${castValue})"
+            castValue = "String(describing: ${castValue})"
           }
           PathExtension(
                   name = field.name,
