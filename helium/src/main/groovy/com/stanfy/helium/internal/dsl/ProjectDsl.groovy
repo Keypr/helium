@@ -5,6 +5,7 @@ import com.stanfy.helium.internal.handler.ScriptExtender
 import com.stanfy.helium.internal.model.tests.BehaviorDescriptionContainer
 import com.stanfy.helium.internal.model.tests.BehaviourDescription
 import com.stanfy.helium.internal.model.tests.CheckGroup
+import com.stanfy.helium.internal.model.tests.CheckableItem
 import com.stanfy.helium.internal.model.tests.CheckableService
 import com.stanfy.helium.model.*
 import com.stanfy.helium.model.tests.BehaviourSuite
@@ -44,6 +45,9 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
 
   /** Types resolver. */
   private DefaultTypeResolver typeResolver = new DefaultTypeResolver()
+
+  /** A set of specific checks to run. */
+  private final Set<CheckableItem> checkTargets = new HashSet<>()
 
   /** Used charset. */
   private Charset charset = Charset.forName("UTF-8")
@@ -182,6 +186,14 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
     return behaviourDescriptions.size()
   }
 
+  void addSpecificCheckTarget(CheckableItem item) {
+    checkTargets.add(item)
+  }
+
+  Set<CheckableItem> getSpecificCheckTargets() {
+    return Collections.unmodifiableSet(this.checkTargets)
+  }
+
   @Override
   BehaviourSuite check(final MethodsExecutor executor, final CheckListener listener) {
     return new CheckGroup(behaviourDescriptions, executor, listener).run("Project checks")
@@ -189,7 +201,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
 
   // -------- DSL methods --------
 
-  public void service(final Closure<?> description) {
+  void service(final Closure<?> description) {
     applyPendingTypes()
     CheckableService service = new CheckableService()
     runWithProxy(new ConfigurableService(service, this), description)
@@ -197,7 +209,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
     structure.add service
   }
 
-  public def type(final Object arg) {
+  def type(final Object arg) {
     applyPendingTypes()
     String name = "$arg"
     Type type = new Type(name : name)
@@ -206,7 +218,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
     return TypeDsl.create(type, this)
   }
 
-  public void note(final String text) {
+  void note(final String text) {
     applyPendingTypes()
     Note note = new Note(value: text)
     notes.add note
@@ -233,7 +245,11 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
   }
 
   BehaviourDescriptionBuilder describe(final String name) {
-    return new BehaviourDescriptionBuilder(name, this, this)
+    return new BehaviourDescriptionBuilder(name, this, this, false)
+  }
+
+  BehaviourDescriptionBuilder _describe(final String name) {
+    return new BehaviourDescriptionBuilder(name, this, this, true)
   }
 
 }

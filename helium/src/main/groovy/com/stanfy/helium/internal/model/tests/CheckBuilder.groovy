@@ -29,7 +29,7 @@ class CheckBuilder implements BehaviorDescriptionContainer {
 
   private final Map<Service, ExecutorDsl> executorDsls = [:]
 
-  public CheckBuilder(final ProjectDsl project, final Service service, final MethodsExecutor executor, final CheckListener listener) {
+  CheckBuilder(final ProjectDsl project, final Service service, final MethodsExecutor executor, final CheckListener listener) {
     if (project == null) {
       throw new IllegalArgumentException("Null project")
     }
@@ -39,82 +39,15 @@ class CheckBuilder implements BehaviorDescriptionContainer {
     this.listener = listener
   }
 
-  /**
-   * Example:
-   * it("x should be equal to 2", { x == 2 })
-   * it("message should not be null", { assert msg != nil })
-   */
-  public void it(String name, Closure<?> action) {
-    BehaviourCheck res = new BehaviourCheck(name: name)
-    def runner = {
-      long startTime = System.currentTimeMillis()
-      try {
-        def checkResult = runAction(action)
-        if (checkResult instanceof Boolean) {
-          res.result = (checkResult as Boolean) ? PASSED : FAILED
-        } else {
-          res.result = PASSED
-        }
-      } catch (Throwable e) {
-        res.result = FAILED
-        res.description = e instanceof AssertionError ? e.message : errorStack(e)
-      } finally {
-        res.time = Duration.millis(System.currentTimeMillis() - startTime)
-      }
-      return res
-    }
-    checks.add(new CheckRunner(check: res, run: runner))
-  }
-
-  /**
-   * For nested spec.
-   */
-  public BehaviourDescriptionBuilder describe(String name) {
-    return new BehaviourDescriptionBuilder(name, this, project)
-  }
-
   @Override
   void addBehaviourDescription(final BehaviourDescription desc) {
     desc.service = service
     checks.add new CheckRunner(run: { desc.check(executor, listener) })
   }
 
-  public void beforeEach(Closure<Void> action) {
-    before.add action
-  }
-
-  public void afterEach(Closure<Void> action) {
-    after.add action
-  }
-
-  /**
-   * Example:
-   * xit("x should be not zero", { not implemented yet })
-   */
-  public void xit(String name, Closure<?> ignored) {
-    xit(name)
-  }
-
   private void ignored(String name, boolean suite) {
     def runner = { suite ? BehaviourSuite(name: name) : new BehaviourCheck(name: name) }
     checks.add new CheckRunner(run: runner, skipped: true)
-  }
-
-  /**
-   * Example:
-   * xit("x should be not zero")
-   */
-  public void xit(String name) {
-    ignored(name, false)
-  }
-
-  public void it(String name) {
-    xit(name)
-  }
-
-  public def xdescribe(String name) {
-    ignored(name, true)
-    return [spec : { /* Nothing. */ }]
   }
 
   @CompileStatic
@@ -183,21 +116,6 @@ class CheckBuilder implements BehaviorDescriptionContainer {
     return action()
   }
 
-  public ExecutorDsl getService() {
-    if (service != null) {
-      return serviceDsl(service)
-    }
-    throw new IllegalStateException("There is no bound service")
-  }
-
-  public ExecutorDsl service(final String name) {
-    Service s = project.serviceByName(name)
-    if (s != null) {
-      return serviceDsl(s)
-    }
-    throw new IllegalArgumentException("Service $name does not exist")
-  }
-
   private ExecutorDsl serviceDsl(final Service service) {
     ExecutorDsl dsl = executorDsls[service]
     if (dsl) {
@@ -212,6 +130,95 @@ class CheckBuilder implements BehaviorDescriptionContainer {
     BehaviourCheck check
     Closure<BehaviourCheck> run
     boolean skipped
+  }
+
+  // --- DSL methods ---
+
+  /**
+   * Example:
+   * it("x should be equal to 2", { x == 2 })
+   * it("message should not be null", { assert msg != nil })
+   */
+  void it(String name, Closure<?> action) {
+    BehaviourCheck res = new BehaviourCheck(name: name)
+    def runner = {
+      long startTime = System.currentTimeMillis()
+      try {
+        def checkResult = runAction(action)
+        if (checkResult instanceof Boolean) {
+          res.result = (checkResult as Boolean) ? PASSED : FAILED
+        } else {
+          res.result = PASSED
+        }
+      } catch (Throwable e) {
+        res.result = FAILED
+        res.description = e instanceof AssertionError ? e.message : errorStack(e)
+      } finally {
+        res.time = Duration.millis(System.currentTimeMillis() - startTime)
+      }
+      return res
+    }
+    checks.add(new CheckRunner(check: res, run: runner))
+  }
+
+  /**
+   * For nested spec.
+   */
+  BehaviourDescriptionBuilder describe(String name) {
+    return new BehaviourDescriptionBuilder(name, this, project, false)
+  }
+
+  /** To specify what to run. */
+  BehaviourDescriptionBuilder _describe(String name) {
+    return new BehaviourDescriptionBuilder(name, this, project, true)
+  }
+
+  void beforeEach(Closure<Void> action) {
+    before.add action
+  }
+
+  void afterEach(Closure<Void> action) {
+    after.add action
+  }
+
+  /**
+   * Example:
+   * xit("x should be not zero", { not implemented yet })
+   */
+  void xit(String name, Closure<?> ignored) {
+    xit(name)
+  }
+
+  /**
+   * Example:
+   * xit("x should be not zero")
+   */
+  void xit(String name) {
+    ignored(name, false)
+  }
+
+  void it(String name) {
+    xit(name)
+  }
+
+  def xdescribe(String name) {
+    ignored(name, true)
+    return [spec : { /* Nothing. */ }]
+  }
+
+  ExecutorDsl getService() {
+    if (service != null) {
+      return serviceDsl(service)
+    }
+    throw new IllegalStateException("There is no bound service")
+  }
+
+  ExecutorDsl service(final String name) {
+    Service s = project.serviceByName(name)
+    if (s != null) {
+      return serviceDsl(s)
+    }
+    throw new IllegalArgumentException("Service $name does not exist")
   }
 
 }

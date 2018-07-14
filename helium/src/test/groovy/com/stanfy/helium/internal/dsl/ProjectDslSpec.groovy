@@ -842,6 +842,20 @@ class ProjectDslSpec extends Specification {
     (sb.children[2] as BehaviourSuite).children[1].name == "should be s 1"
   }
 
+  def "check run specifiers - describe"() {
+    when:
+    dsl._describe 'spec 1' spec { }
+    dsl.service {
+      name "S"
+      _describe "s spec 2" spec {
+        it('ok')
+      }
+    }
+
+    then:
+    dsl.specificCheckTargets.collect { it.name }.sort() == ['s spec 2', 'spec 1']
+  }
+
   def "certificate security definition"() {
     when:
     dsl.service {

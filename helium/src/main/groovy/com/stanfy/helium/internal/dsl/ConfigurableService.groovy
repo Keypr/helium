@@ -85,7 +85,17 @@ class ConfigurableService extends ConfigurableProxy<CheckableService> {
   @CompileStatic
   BehaviourDescriptionBuilder describe(final String name) {
     CheckBuilder builder = BehaviourDescription.currentBuilder()
-    return builder != null ? builder.describe(name) : new BehaviourDescriptionBuilder(name, getCore(), getProject())
+    return (builder != null
+        ? builder.describe(name)
+        : new BehaviourDescriptionBuilder(name, getCore(), getProject(), false))
+  }
+
+  @CompileStatic
+  BehaviourDescriptionBuilder _describe(final String name) {
+    CheckBuilder builder = BehaviourDescription.currentBuilder()
+    return (builder != null
+        ? builder._describe(name)
+        : new BehaviourDescriptionBuilder(name, getCore(), getProject(), true))
   }
 
   void authentication(Authentication auth) {
