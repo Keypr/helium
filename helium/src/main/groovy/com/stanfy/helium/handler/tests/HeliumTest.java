@@ -21,17 +21,19 @@ import java.nio.charset.Charset;
 /**
  * Helium test tools.
  */
-public final class HeliumTest {
+final class HeliumTest {
+
+  private static final String INDENT = "    ";
 
   final HeliumTestLog log;
   final OkHttpClient httpClient;
 
-  public HeliumTest(final HeliumTestLog log) {
+  HeliumTest(final HeliumTestLog log) {
     this.log = log;
     this.httpClient = createHttpClient();
   }
 
-  public OkHttpClient httpClient() {
+  OkHttpClient httpClient() {
     return httpClient;
   }
 
@@ -129,17 +131,21 @@ public final class HeliumTest {
       return;
     }
     for (int i = 0; i < count; i++) {
+      log.write(INDENT);
       log.write("%s: %s", headers.name(i), headers.value(i));
     }
   }
 
   private void logBytes(final ByteString body, final MediaType contentType) {
     Charset charset = contentType != null ? contentType.charset() : null;
+    final String output;
     if (charset == null || charset.equals(Charset.forName("UTF-8"))) {
-      log.write(body.utf8());
+      output = body.utf8();
     } else {
-      log.write(new String(body.toByteArray(), charset));
+      output = new String(body.toByteArray(), charset);
     }
+    log.write(INDENT);
+    log.write(output.trim().replaceAll("\\r?\\n","\n" + INDENT));
   }
 
   /** Helium tests runner. */

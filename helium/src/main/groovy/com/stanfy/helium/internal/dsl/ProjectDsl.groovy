@@ -189,7 +189,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
 
   // -------- DSL methods --------
 
-  public void service(final Closure<?> description) {
+  void service(final Closure<?> description) {
     applyPendingTypes()
     CheckableService service = new CheckableService()
     runWithProxy(new ConfigurableService(service, this), description)
@@ -197,7 +197,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
     structure.add service
   }
 
-  public def type(final Object arg) {
+  def type(final Object arg) {
     applyPendingTypes()
     String name = "$arg"
     Type type = new Type(name : name)
@@ -206,7 +206,7 @@ class ProjectDsl implements Project, BehaviorDescriptionContainer {
     return TypeDsl.create(type, this)
   }
 
-  public void note(final String text) {
+  void note(final String text) {
     applyPendingTypes()
     Note note = new Note(value: text)
     notes.add note
