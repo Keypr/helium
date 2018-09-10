@@ -1,0 +1,122 @@
+/**
+ * Helium DSL context.
+ */
+
+// Original Helium classes are not used here to make DSL definition portable.
+
+static def enrichStringDeclarations(d, String... names) {
+  names.each {
+    d.method name: it, params: ['': String.class.name]
+  }
+}
+
+
+// ====== Root entry points ======
+
+def heliumSpecCtx = context(filetypes: ["api"], scope: scriptScope())
+
+contributor([heliumSpecCtx]) {
+
+  // Start custom type or message definition.
+  method name: 'type', params: [name: String.class.name], type: HeliumType.class
+
+  // Start service definition.
+  method name: 'service', params: [spec: Closure.class.name]
+
+  // Add a note.
+  method name: 'note', params: [value: String.class.name]
+
+  // Include another spec.
+  method name: 'include', params: [path: String.class.name]
+
+  // TODO: describe.
+
+}
+
+// ====== Type definitions ======
+
+/** Helium type (message/sequence/dictionary or custom type). */
+interface HeliumType {
+  void spec(Closure<?> body)
+  void sequence(String itemTypeName)
+  void message(Closure<?> body)
+  void dictionary(String keyTypeName, String valueTypeName)
+}
+
+contributor(currentType(HeliumType.class.name)) {
+
+  // Message parameters.
+  method name: 'message', params: [
+      args: [
+          parameter(name: 'skipUnknownFields', type: 'boolean', doc: 'If unexpected fields in API response can be ignored during response structure verification (in tests)'),
+          parameter(name: 'parent', type: String.class.name, doc: 'Parent (embedded) message type name')
+      ],
+      body: {}
+  ]
+
+  // Dictionary definition.
+  method name: 'dictionary', params: [
+      args: [
+          parameter(name: 'key', type: String.class.name),
+          parameter(name: 'value', type: String.class.name)
+      ]
+  ]
+}
+
+// Custom type builder.
+contribute([context(scope: closureScope(isArg: true))]) {
+  def specCall = enclosingCall('spec')
+  if (specCall) {
+    def callMethod = specCall.bind()
+    if (callMethod?.containingClass?.qualName == HeliumType.class.name) {
+      enrichStringDeclarations(delegate, 'description')
+
+      // Define a constraint.
+      method name: 'constraints', params: ['base type name': String.class.name, 'spec': {}]
+
+    }
+  }
+
+  def constraintsCall = enclosingCall('constraints')
+  if (constraintsCall) {
+
+    // Enumeration.
+    method name: 'enumeration', params: ['possible value types': List.class.name]
+    method name: 'enumeration', params: ['possible value types': "${String.class.name}..."]
+
+  }
+
+  // TODO: from, to.
+
+}
+
+
+// ====== Service definitions ======
+
+interface HeliumServiceMethod {
+  void spec(Closure<?> body)
+}
+
+contribute([context(scope: closureScope(isArg: true))]) {
+  def serviceCall = enclosingCall('service')
+  if (serviceCall) {
+    enrichStringDeclarations(delegate, 'name', 'description', 'version', 'location')
+
+    // Methods.
+    ['get', 'post', 'put', 'patch', 'delete', 'head'].each {
+      method name: it, params: [path: String.class.name], type: HeliumServiceMethod.class.name
+    }
+  }
+}
+
+// Service method builder.
+contribute([context(scope: closureScope(isArg: true))]) {
+  def specCall = enclosingCall('spec')
+  if (specCall) {
+    def callMethod = specCall.bind()
+    if (callMethod?.containingClass?.qualName == HeliumServiceMethod.class.name) {
+      enrichStringDeclarations(delegate, 'name', 'description')
+      // TODO: parameters, response, body, httpHeaders.
+    }
+  }
+}
