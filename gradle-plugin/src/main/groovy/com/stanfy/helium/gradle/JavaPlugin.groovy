@@ -1,6 +1,7 @@
 package com.stanfy.helium.gradle
 
 import com.stanfy.helium.gradle.internal.SourceCodeGenerators
+import groovy.transform.PackageScope
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -24,7 +25,7 @@ class JavaPlugin implements Plugin<Project> {
     }
   }
 
-  @groovy.transform.PackageScope
+  @PackageScope
   static void addGeneratedSources(final Project project) {
     HeliumExtension hel = project.helium
     def generators = SourceCodeGenerators.java()

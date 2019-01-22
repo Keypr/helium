@@ -7,7 +7,7 @@ import com.stanfy.helium.gradle.tasks.GenerateObjcEntitiesTask
 import com.stanfy.helium.gradle.tasks.GenerateRetrofitTask
 import com.stanfy.helium.handler.codegen.java.constants.ConstantsGeneratorOptions
 import com.stanfy.helium.handler.codegen.java.entity.EntitiesGeneratorOptions
-import com.stanfy.helium.handler.codegen.java.retrofit.RetrofitGeneratorOptions
+import com.stanfy.helium.handler.codegen.java.retrofit2.Retrofit2GeneratorOptions
 import com.stanfy.helium.handler.codegen.json.schema.JsonSchemaGeneratorOptions
 import com.stanfy.helium.handler.codegen.objectivec.entity.ObjCEntitiesOptions
 
@@ -28,7 +28,7 @@ class SourceCodeGenerators {
           task: GenerateJavaConstantsTask
       ],
       retrofit: [
-          optionsFactory: { RetrofitGeneratorOptions.defaultOptions(DEFAULT_PACKAGE) },
+          optionsFactory: { Retrofit2GeneratorOptions.defaultOptions(DEFAULT_PACKAGE) },
           task: GenerateRetrofitTask
       ],
       objc: [

@@ -12,6 +12,7 @@ dependencies {
   compile project(':codegen:java:java-entities')
   compile project(':codegen:java:java-constants')
   compile project(':codegen:java:retrofit')
+  compile project(':codegen:java:retrofit2')
   compile project(':codegen:objc:objc-entities')
   compile project(':codegen:swift:swift-entities')
   compile project(':codegen:json:json-schema')

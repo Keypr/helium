@@ -6,6 +6,7 @@ include ':codegen:java:java-handler'
 include ':codegen:java:java-entities'
 include ':codegen:java:java-constants'
 include ':codegen:java:retrofit'
+include ':codegen:java:retrofit2'
 
 include ':codegen:objc:objc-entities'
 

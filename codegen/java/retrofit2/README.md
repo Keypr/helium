@@ -1,0 +1,1 @@
+Generator of Retrofit v2 interfaces from service definitions in the spec.
