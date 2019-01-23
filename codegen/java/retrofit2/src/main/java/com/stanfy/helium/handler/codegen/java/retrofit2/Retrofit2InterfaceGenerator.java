@@ -184,7 +184,7 @@ public class Retrofit2InterfaceGenerator extends BaseJavaGenerator<Retrofit2Gene
           responseType = resolveJavaTypeName(m.getResponse(), writer, false);
         }
 
-        if (responseType.equals("ResponseBody") || responseType.equals("okhttp3.ResponseBody")) {
+        if ("ResponseBody".equals(responseType) || "okhttp3.ResponseBody".equals(responseType)) {
           writer.emitAnnotation("Streaming");
         }
 
