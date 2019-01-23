@@ -1,16 +1,16 @@
 package com.stanfy.helium.gradle.tasks
 
-import com.stanfy.helium.handler.codegen.java.retrofit2.Retrofit2GeneratorOptions
-import com.stanfy.helium.handler.codegen.java.retrofit2.Retrofit2InterfaceGenerator
+import com.stanfy.helium.handler.codegen.java.retrofit.RetrofitGeneratorOptions
+import com.stanfy.helium.handler.codegen.java.retrofit.RetrofitInterfaceGenerator
 
 /**
  * Task for generating Retrofit interfaces from a specification.
  */
-class GenerateRetrofitTask extends BaseHeliumTask<Retrofit2GeneratorOptions> {
+class GenerateRetrofitTask extends BaseHeliumTask<RetrofitGeneratorOptions> {
 
   @Override
   protected void doIt() {
-    helium.processBy new Retrofit2InterfaceGenerator(output, options)
+    helium.processBy new RetrofitInterfaceGenerator(output, options)
   }
 
 }
