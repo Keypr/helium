@@ -1,6 +1,8 @@
 buildscript {
   repositories {
     mavenCentral()
+    google()
+    jcenter()
   }
 
   dependencies {
@@ -33,6 +35,20 @@ task populateVersion(description: "Populate root project version") {
 }
 
 allprojects {
+  buildscript {
+    repositories {
+      mavenCentral()
+      google()
+      jcenter()
+    }
+  }
+  
+  repositories {
+    mavenCentral()
+    google()
+    jcenter()
+  }
+  
   configurations.all {
     resolutionStrategy {
       force 'org.codehaus.groovy:groovy-all:2.4.15'

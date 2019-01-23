@@ -5,8 +5,8 @@ boolean hasCredentials = hasProperty('nexusUsername') && hasProperty('nexusPassw
 
 repositories {
   mavenCentral()
-  jcenter()
   google()
+  jcenter()
 }
 
 configurations {
