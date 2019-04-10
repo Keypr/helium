@@ -1,7 +1,7 @@
 Helium
 ======
 
-***We are migrating to OpenAPI Specification. This project only gets support to migrate existing specifications.**
+**We are migrating to OpenAPI Specification. This project only gets support to migrate existing specifications.**
 
 Helium is a DSL for REST API specifications and also a Java API for processing descriptions written in this language.
 The main goal of this project is to create a single source of truth about some REST API. Taking a spec as an input,
