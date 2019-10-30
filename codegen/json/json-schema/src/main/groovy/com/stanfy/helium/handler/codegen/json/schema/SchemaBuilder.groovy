@@ -123,7 +123,6 @@ class SchemaBuilder {
   }
 
   JsonSchemaEntity makeSchemaFromType(Type type, SelectionRules selection) {
-    println "makeSchemaFromType: " + type
     return makeSchema(type, selection, false)
   }
 
