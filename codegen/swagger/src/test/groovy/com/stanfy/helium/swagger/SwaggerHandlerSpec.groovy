@@ -36,6 +36,10 @@ class SwaggerHandlerSpec extends Specification {
 
           type 'ProductList' sequence 'Product'
 
+          type "SomeObjectThatContainsSequence" message {
+            manyObjects 'ProductList' sequence
+          }
+
           type 'User' message {
             last_name 'string'
             first_name 'string'
@@ -66,6 +70,11 @@ class SwaggerHandlerSpec extends Specification {
                 server_token(type: 'string', description: 'API key.')
               }
               response 'ProductList'
+            }
+
+            get '/someObjectWithArray' spec {
+              body 'SomeData'
+              response 'SomeObjectThatContainsSequence'
             }
 
             post '/body-test' spec {
@@ -332,6 +341,17 @@ class SwaggerHandlerSpec extends Specification {
 
     expect:
     !data.definitions.Product.properties.containsKey('image')
+  }
+
+  def "respect sequences in properties"() {
+    given:
+    handler.handle(project)
+    def data = specData(uberSpec())
+
+    expect:
+    def manyObjects = data.definitions.SomeObjectThatContainsSequence.properties.manyObjects
+    manyObjects?.type == "array"
+    manyObjects?.items?.$ref == '#/definitions/ProductList'
   }
 
   void cleanup() {
