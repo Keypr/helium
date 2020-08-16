@@ -9,6 +9,7 @@ import com.stanfy.helium.handler.codegen.json.schema.JsonSchemaGenerator;
 import com.stanfy.helium.handler.codegen.json.schema.JsonType;
 import com.stanfy.helium.handler.codegen.json.schema.SchemaBuilder;
 import com.stanfy.helium.internal.utils.Names;
+import com.stanfy.helium.model.DataType;
 import com.stanfy.helium.model.Dictionary;
 import com.stanfy.helium.model.Field;
 import com.stanfy.helium.model.Message;
@@ -209,6 +210,14 @@ public class SwaggerHandler implements Handler {
         p.type = schemaBuilder.translateType(part.getValue());
         method.parameters.add(p);
       }
+    } else if (m.getBody() instanceof DataType) {
+      method.consumes = Collections.singletonList("multipart/form-data");
+      Parameter p = new Parameter();
+      p.name = "file";
+      p.in = "formData";
+      p.required = true;
+      p.type = JsonType.FILE;
+      method.parameters.add(p);
     } else if (m.getType().isHasBody() && m.getBody() != null) {
       Parameter p = new Parameter();
       p.name = "body";
