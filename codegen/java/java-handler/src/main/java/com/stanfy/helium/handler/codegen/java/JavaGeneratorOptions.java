@@ -151,8 +151,13 @@ public abstract class JavaGeneratorOptions extends GeneratorOptions {
   private String mapMemberType(Type type, JavaWriter writer) {
     final String name;
     if (type.isPrimitive()) {
-      Class<?> keyClass = getPrimitiveJavaClass(type);
-      name = writer.compressType(JavaPrimitiveTypes.box(keyClass).getName());
+      if (getCustomPrimitivesMapping().containsKey(type.getName())) {
+        String customName = getCustomPrimitivesMapping().get(type.getName());
+        name = writer.compressType(customName);
+      } else {
+        Class<?> keyClass = getPrimitiveJavaClass(type);
+        name = writer.compressType(JavaPrimitiveTypes.box(keyClass).getName());
+      }
     } else if (type instanceof Sequence) {
       name = getJavaTypeName(((Sequence) type).getItemsType(), true, false, writer);
     } else {
